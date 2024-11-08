@@ -1,0 +1,21 @@
+{
+"type": "FeatureCollection",
+"name": "gym",
+"crs": { "type": "name", "properties": { "name": "urn:ogc:def:crs:EPSG::4979" } },
+"features": [
+{ "type": "Feature", "id": 1, "properties": { "OBJECTID": 1, "Location": "Blackrock Park", "Type": "exercise stations", "ITM_X": 720978.19039999973, "ITM_Y": 729735.86309999973 }, "geometry": { "type": "Point", "coordinates": [ -6.18485724095637, 53.304078856423153 ] } },
+{ "type": "Feature", "id": 2, "properties": { "OBJECTID": 2, "Location": "Newtown Smith Park", "Type": "exercise stations", "ITM_X": 725293.50349999964, "ITM_Y": 728027.0418999996 }, "geometry": { "type": "Point", "coordinates": [ -6.120822317798845, 53.287727439727853 ] } },
+{ "type": "Feature", "id": 3, "properties": { "OBJECTID": 3, "Location": "Shanganagh Park", "Type": "exercise stations", "ITM_X": 725792.82870000042, "ITM_Y": 721003.67569999956 }, "geometry": { "type": "Point", "coordinates": [ -6.116112500319591, 53.224523999564887 ] } },
+{ "type": "Feature", "id": 4, "properties": { "OBJECTID": 4, "Location": "Kilbogget Park", "Type": "exercise stations", "ITM_X": 724036.9929, "ITM_Y": 724912.30760000087 }, "geometry": { "type": "Point", "coordinates": [ -6.140871452372564, 53.260045327691032 ] } },
+{ "type": "Feature", "id": 5, "properties": { "OBJECTID": 5, "Location": "The Gallops", "Type": "exercise stations", "ITM_X": 720063.09509999957, "ITM_Y": 725151.80079999939 }, "geometry": { "type": "Point", "coordinates": [ -6.200311170346833, 53.263110227627706 ] } },
+{ "type": "Feature", "id": 6, "properties": { "OBJECTID": 6, "Location": "Stillorgan Heath ", "Type": "exercise stations", "ITM_X": 719797.89950000029, "ITM_Y": 727340.22729999945 }, "geometry": { "type": "Point", "coordinates": [ -6.203459964710586, 53.282827944998154 ] } },
+{ "type": "Feature", "id": 7, "properties": { "OBJECTID": 7, "Location": "Rathsallagh Open Space", "Type": "exercise stations", "ITM_X": 725462.52159999963, "ITM_Y": 722717.648 }, "geometry": { "type": "Point", "coordinates": [ -6.120381895394502, 53.239997410399482 ] } },
+{ "type": "Feature", "id": 8, "properties": { "OBJECTID": 8, "Location": "Loughlinstown Linear Park", "Type": "exercise stations", "ITM_X": 725108.14350000024, "ITM_Y": 723533.2884 }, "geometry": { "type": "Point", "coordinates": [ -6.12536765329201, 53.247407282731437 ] } },
+{ "type": "Feature", "id": 9, "properties": { "OBJECTID": 9, "Location": "Marley Park", "Type": "trim trail", "ITM_X": 715801.14549999963, "ITM_Y": 726359.66110000014 }, "geometry": { "type": "Point", "coordinates": [ -6.263723421929193, 53.274907235690499 ] } },
+{ "type": "Feature", "id": 10, "properties": { "OBJECTID": 10, "Location": "Cabinteely Park", "Type": "trim trail", "ITM_X": 723131.06730000023, "ITM_Y": 725143.09029999934 }, "geometry": { "type": "Point", "coordinates": [ -6.154352900674069, 53.262329200161076 ] } },
+{ "type": "Feature", "id": 11, "properties": { "OBJECTID": 11, "Location": "Deer Park", "Type": "trim trail", "ITM_X": 719243.5559, "ITM_Y": 728678.53749999963 }, "geometry": { "type": "Point", "coordinates": [ -6.211266499389742, 53.294974400356608 ] } },
+{ "type": "Feature", "id": 12, "properties": { "OBJECTID": 12, "Location": "Ballawley Park", "Type": "trim trail", "ITM_X": 717793.9804999996, "ITM_Y": 726758.08320000023 }, "geometry": { "type": "Point", "coordinates": [ -6.233711485284647, 53.278047487993035 ] } },
+{ "type": "Feature", "id": 13, "properties": { "OBJECTID": 13, "Location": "Hudson Park", "Type": "exercise stations", "ITM_X": 725168.952, "ITM_Y": 727778.57770000026 }, "geometry": { "type": "Point", "coordinates": [ -6.122787120157752, 53.285525097535775 ] } },
+{ "type": "Feature", "id": 14, "properties": { "OBJECTID": 14, "Location": "Fernhill Park", "Type": "exercise stations", "ITM_X": 718184.76960000023, "ITM_Y": 724621.22719999962 }, "geometry": { "type": "Point", "coordinates": [ -6.228648519123224, 53.258765745014919 ] } }
+]
+}

@@ -1,0 +1,39 @@
+services:
+  nginx:
+    image: nginx:latest
+    ports:
+      - "84:80"
+    volumes:
+      - ./nginx/conf.d:/etc/nginx/conf.d
+
+  pgadmin4:
+    image: dpage/pgadmin4
+    ports:
+      - "20080:80"
+    environment:
+      PGADMIN_DEFAULT_EMAIL: c21730391@mytudublin.ie
+      PGADMIN_DEFAULT_PASSWORD: password123
+
+
+  postgis:
+    image: kartoza/postgis
+    ports:
+      - "25432:5432"
+    environment:
+      POSTGRES_PASSWORD: docker
+      POSTGRES_DB: gis
+
+
+  awm_django_app:
+    image: geodjango_tutorial_image
+    build: .
+    ports:
+      - "8001:8001"
+    volumes:
+      - .:/app
+    depends_on:
+      - postgis
+      - nginx
+      - pgadmin4
+
+    command: python manage.py runserver 0.0.0.0:8001

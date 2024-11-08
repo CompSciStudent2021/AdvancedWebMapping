@@ -1,0 +1,2 @@
+from osgeo import gdal
+print(gdal.GetConfigOption("GDAL_DATA"))

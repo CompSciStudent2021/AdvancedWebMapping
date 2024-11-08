@@ -1,0 +1,29 @@
+{% extends 'world/base.html' %}
+
+{% block title %}{{ gym.location }} - Reviews{% endblock %}
+
+{% block content %}
+<h2>{{ gym.location }}</h2>
+
+<h3>Reviews</h3>
+<div id="reviews">
+    {% for review in reviews %}
+        <div class="review">
+            <strong>{{ review.user.username }}</strong> - Rating: {{ review.rating }}/5
+            <p>{{ review.comment }}</p>
+            <small>Reviewed on {{ review.created_at }}</small>
+        </div>
+    {% empty %}
+        <p>No reviews yet.</p>
+    {% endfor %}
+</div>
+
+<h3>Leave a Review</h3>
+<form method="POST">
+    {% csrf_token %}
+    {{ form.as_p }}
+    <button type="submit">Submit Review</button>
+</form>
+
+<a href="{% url 'gym_map' %}">Back to Map</a>
+{% endblock %}
