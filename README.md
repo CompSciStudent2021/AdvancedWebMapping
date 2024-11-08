@@ -1,5 +1,5 @@
 # AdvancedWebMapping
-Gym Locator Application
+# Gym Locator Application
 The Gym Locator Application is an interactive web-based tool that helps users find nearby gyms based on their type, such as exercise stations or trim trails. Leveraging the power of OpenStreetMap and Leaflet, the application provides an intuitive map interface where users can:
 
 View Nearby Gyms: Discover various gyms in their vicinity marked on an interactive map.
