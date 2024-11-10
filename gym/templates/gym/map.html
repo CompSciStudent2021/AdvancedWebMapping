@@ -1,0 +1,116 @@
+{% extends 'world/base.html' %}
+
+{% block title %}Map{% endblock %}
+
+{% block content %}
+<h2>Nearby Gyms</h2>
+<label for="gymType">Select Gym Type:</label>
+<select id="gymType">
+    <option value="all">All</option>
+    <option value="exercise stations">Exercise Stations</option>
+    <option value="trim trail">Trim Trail</option>
+    <!-- Add more gym types as needed -->
+</select>
+<div id="map" style="height: 600px;"></div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    var map = L.map('map').setView([0, 0], 2);  // Initialize map at a global level
+
+    // Use OpenStreetMap tiles
+    var streetLayer = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        maxZoom: 19,
+        attribution: '&copy; OpenStreetMap contributors'
+    }).addTo(map);  // Add street layer by default
+
+    // User location handling
+    var userMarker, userCircle;
+    var username = '{{ username|escapejs }}';  // Pass the username from Django context
+    var gymMarkers = [];  // Array to hold gym markers
+    var bounds = L.latLngBounds();  // Create a bounds object
+
+    function updateUserLocation(latitude, longitude, accuracy) {
+        if (userMarker) map.removeLayer(userMarker);
+        if (userCircle) map.removeLayer(userCircle);
+
+        userMarker = L.marker([latitude, longitude]).addTo(map)
+            .bindPopup(username + "'s location");  // Customize popup to show username
+
+        userCircle = L.circle([latitude, longitude], { radius: accuracy }).addTo(map);
+        
+        // Extend the bounds to include user's location
+        bounds.extend([latitude, longitude]);
+    }
+
+    function updateLocation() {
+        if (navigator.geolocation) {
+            navigator.geolocation.getCurrentPosition(
+                function(position) {
+                    var latitude = position.coords.latitude;
+                    var longitude = position.coords.longitude;
+                    var accuracy = position.coords.accuracy;
+
+                    updateUserLocation(latitude, longitude, accuracy);
+
+                    // Only fit the map bounds after setting the user's location
+                    fitMapBounds();
+                },
+                function(error) {
+                    console.error('Error getting location:', error);
+                }
+            );
+        } else {
+            console.error('Geolocation is not supported by this browser.');
+        }
+    }
+
+    function fitMapBounds() {
+        // Parse and display gym data
+        var gyms = JSON.parse('{{ gym_data|escapejs }}');
+        gyms.features.forEach(function(gym) {
+            var coordinates = gym.geometry.coordinates;
+            var properties = gym.properties;
+            var marker = L.marker([coordinates[1], coordinates[0]])
+                .addTo(map)
+                .bindPopup('<strong>' + properties.location + '</strong><br>' + properties.type +
+                    '<br><button onclick="getDirections(' + coordinates[1] + ', ' + coordinates[0] + ')">Get Directions</button>');
+
+            // Store the marker and its type
+            marker.gymType = properties.type;
+            gymMarkers.push(marker); // Add the marker to the gymMarkers array
+
+            // Extend bounds to include the gym marker
+            bounds.extend([coordinates[1], coordinates[0]]);
+        });
+
+        // Fit the map to the bounds of the user location and gym markers
+        map.fitBounds(bounds);
+    }
+
+    function getDirections(lat, lng) {
+        var userLat = userMarker.getLatLng().lat;  // Get user's latitude
+        var userLng = userMarker.getLatLng().lng;  // Get user's longitude
+        // Open Google Maps directions
+        window.open('https://www.google.com/maps/dir/?api=1&origin=' + userLat + ',' + userLng + '&destination=' + lat + ',' + lng + '&travelmode=driving', '_blank');
+    }
+
+    // Filter gym markers based on the selected type
+    document.getElementById('gymType').addEventListener('change', function() {
+        var selectedType = this.value;
+        gymMarkers.forEach(function(marker) {
+            // Show or hide markers based on selected type
+            if (selectedType === 'all' || marker.gymType === selectedType) {
+                map.addLayer(marker);  // Show marker
+            } else {
+                map.removeLayer(marker);  // Hide marker
+            }
+        });
+    });
+
+    // On page load, update location and display gyms
+    document.addEventListener('DOMContentLoaded', function() {
+        updateLocation();
+    });
+</script>
+{% endblock %}
