@@ -106,8 +106,6 @@ sudo docker create --name nginx --network wmap_network --network-alias nginx -p 
 
 sudo docker create --name awm_django_app --network wmap_network --network-alias awm_django_app -t -v html_data:/usr/src/app/static c21730391/geodjango_tutorial_image:latest
 
-sudo docker create --name frontend_app --network wmap_network --network-alias frontend_app -p 3000:80 c21730391/frontend_image:latest
-
 docker start <container_id>
 ```
 
@@ -132,4 +130,4 @@ docker retart <container_id>
 ```
 
 # Conclusion
-Advanced Web Mapping CA2: This project successfully implements a full-stack web application to search and interact with hospital data anywhere in Ireland. The web application combines Django, React, Typescript and PostgreSQL with up-to-date mapping technologies, covering important functionalities such as user authentication, geolocation services, and route finding. The containerisation of the project using Docker and its deployment on AWS make it production-ready. The solution effectively serves health providers and users securely and scalably.
+Advanced Web Mapping CA2: This project successfully implements a full-stack web application to search and interact with gym data anywhere in Ireland. The web application combines Django, Javascript and PostgreSQL with up-to-date mapping technologies, covering important functionalities such as user authentication, geolocation services, and route finding. The containerisation of the project using Docker and its deployment on AWS make it production-ready. The solution effectively serves health providers and users securely and scalably.
