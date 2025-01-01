@@ -3,62 +3,88 @@
 {% block title %}Map{% endblock %}
 
 {% block content %}
-<h2>Nearby Gyms</h2>
-<label for="gymType">Select Gym Type:</label>
-<select id="gymType">
-    <option value="all">All</option>
-    <option value="exercise stations">Exercise Stations</option>
-    <option value="trim trail">Trim Trail</option>
-    <!-- Add more gym types as needed -->
+<h2>Fitness Amenities</h2>
+<label for="locationType">Select Location Type:</label>
+<select id="locationType">
+    <option value="all">None</option>
+    <option value="fitness_centre">Fitness Centres</option>
+    <option value="pitch">Sports Pitches</option>
+    <!-- Add more location types as needed -->
 </select>
-<div id="map" style="height: 600px;"></div>
+<div style="margin: 10px 0;">
+    <button id="toggleMapView" class="btn btn-primary" style="margin-right: 10px;">Switch to Satellite</button>
+    <button id="findNearest" class="btn btn-success" style="margin-right: 10px;">Find Nearest</button>
+</div>
+<div id="map" style="height: 600px; position: relative;"></div>
 {% endblock %}
 
 {% block extra_js %}
+<link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster/dist/MarkerCluster.css" />
+<link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster/dist/MarkerCluster.Default.css" />
+<script src="https://unpkg.com/leaflet.markercluster/dist/leaflet.markercluster.js"></script>
+<script src="https://unpkg.com/leaflet-routing-machine/dist/leaflet-routing-machine.js"></script>
 <script>
-    var map = L.map('map').setView([0, 0], 2);  // Initialize map at a global level
+    var map = L.map('map').setView([53.0, -7.0], 7); // Initialize map centered on Ireland
 
-    // Use OpenStreetMap tiles
+    // Standard OpenStreetMap tiles
     var streetLayer = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
         maxZoom: 19,
         attribution: '&copy; OpenStreetMap contributors'
-    }).addTo(map);  // Add street layer by default
+    }).addTo(map);
 
-    // User location handling
-    var userMarker, userCircle;
-    var username = '{{ username|escapejs }}';  // Pass the username from Django context
-    var gymMarkers = [];  // Array to hold gym markers
-    var bounds = L.latLngBounds();  // Create a bounds object
+    // Satellite view tiles from Esri
+    var satelliteLayer = L.tileLayer(
+        'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
+            attribution: 'Tiles &copy; Esri',
+            maxZoom: 19
+        }
+    );
 
+    var isSatelliteView = false; // Track current view
+
+    // Toggle map view between standard and satellite
+    document.getElementById('toggleMapView').addEventListener('click', function () {
+        if (isSatelliteView) {
+            map.removeLayer(satelliteLayer);
+            map.addLayer(streetLayer);
+            this.textContent = 'Switch to Satellite';
+        } else {
+            map.removeLayer(streetLayer);
+            map.addLayer(satelliteLayer);
+            this.textContent = 'Switch to Standard';
+        }
+        isSatelliteView = !isSatelliteView;
+    });
+
+    // Cluster group for markers
+    var markersCluster = L.markerClusterGroup();
+    map.addLayer(markersCluster);
+
+    var userMarker, userCircle; // For user location
+    var locationMarkers = {}; // Hold markers categorized by type
+    var bounds = L.latLngBounds(); // Define map bounds
+    var routeControl; // Handle routing
+
+    // Update user location on the map
     function updateUserLocation(latitude, longitude, accuracy) {
         if (userMarker) map.removeLayer(userMarker);
         if (userCircle) map.removeLayer(userCircle);
 
         userMarker = L.marker([latitude, longitude]).addTo(map)
-            .bindPopup(username + "'s location");  // Customize popup to show username
-
+            .bindPopup("Your location");
         userCircle = L.circle([latitude, longitude], { radius: accuracy }).addTo(map);
-        
-        // Extend the bounds to include user's location
         bounds.extend([latitude, longitude]);
     }
 
     function updateLocation() {
         if (navigator.geolocation) {
             navigator.geolocation.getCurrentPosition(
-                function(position) {
-                    var latitude = position.coords.latitude;
-                    var longitude = position.coords.longitude;
-                    var accuracy = position.coords.accuracy;
-
+                (position) => {
+                    const { latitude, longitude, accuracy } = position.coords;
                     updateUserLocation(latitude, longitude, accuracy);
-
-                    // Only fit the map bounds after setting the user's location
                     fitMapBounds();
                 },
-                function(error) {
-                    console.error('Error getting location:', error);
-                }
+                (error) => console.error('Error getting location:', error)
             );
         } else {
             console.error('Geolocation is not supported by this browser.');
@@ -66,51 +92,117 @@
     }
 
     function fitMapBounds() {
-        // Parse and display gym data
-        var gyms = JSON.parse('{{ gym_data|escapejs }}');
-        gyms.features.forEach(function(gym) {
-            var coordinates = gym.geometry.coordinates;
-            var properties = gym.properties;
-            var marker = L.marker([coordinates[1], coordinates[0]])
-                .addTo(map)
-                .bindPopup('<strong>' + properties.location + '</strong><br>' + properties.type +
-                    '<br><button onclick="getDirections(' + coordinates[1] + ', ' + coordinates[0] + ')">Get Directions</button>');
-
-            // Store the marker and its type
-            marker.gymType = properties.type;
-            gymMarkers.push(marker); // Add the marker to the gymMarkers array
-
-            // Extend bounds to include the gym marker
-            bounds.extend([coordinates[1], coordinates[0]]);
-        });
-
-        // Fit the map to the bounds of the user location and gym markers
         map.fitBounds(bounds);
     }
 
-    function getDirections(lat, lng) {
-        var userLat = userMarker.getLatLng().lat;  // Get user's latitude
-        var userLng = userMarker.getLatLng().lng;  // Get user's longitude
-        // Open Google Maps directions
-        window.open('https://www.google.com/maps/dir/?api=1&origin=' + userLat + ',' + userLng + '&destination=' + lat + ',' + lng + '&travelmode=driving', '_blank');
+    // Fetch locations from the API
+    function fetchOsmLocations(type) {
+        markersCluster.clearLayers(); // Clear existing markers in cluster
+
+        const url = `/gym/api/osm-locations/?type=${type}`;
+        fetch(url)
+            .then((response) => {
+                if (!response.ok) {
+                    throw new Error(`HTTP Error: ${response.status}`);
+                }
+                return response.json();
+            })
+            .then((data) => {
+                if (!Array.isArray(data)) {
+                    console.error("Unexpected data format:", data);
+                    return;
+                }
+
+                data.forEach((location) => {
+                    const marker = L.marker([location.latitude, location.longitude])
+                        .bindPopup(
+                            `${location.name}<br>
+                            <button onclick="getDirections(${location.latitude}, ${location.longitude})">Get Directions</button>
+                            <button onclick="openGoogleMaps(${location.latitude}, ${location.longitude})">Find on Google Maps</button>`
+                        );
+
+                    markersCluster.addLayer(marker); // Add marker to cluster group
+                    bounds.extend([location.latitude, location.longitude]);
+                });
+
+                fitMapBounds();
+            })
+            .catch((error) => console.error('Error fetching OSM locations:', error));
     }
 
-    // Filter gym markers based on the selected type
-    document.getElementById('gymType').addEventListener('change', function() {
-        var selectedType = this.value;
-        gymMarkers.forEach(function(marker) {
-            // Show or hide markers based on selected type
-            if (selectedType === 'all' || marker.gymType === selectedType) {
-                map.addLayer(marker);  // Show marker
-            } else {
-                map.removeLayer(marker);  // Hide marker
+    function getDirections(lat, lng) {
+        if (!userMarker) {
+            alert("User location not available. Please enable location services and try again.");
+            return;
+        }
+
+        if (routeControl) {
+            map.removeControl(routeControl); // Remove the previous route
+        }
+
+        routeControl = L.Routing.control({
+            waypoints: [userMarker.getLatLng(), L.latLng(lat, lng)],
+            routeWhileDragging: true,
+            createMarker: () => null, // Do not create additional markers
+            lineOptions: { styles: [{ color: 'blue', weight: 4 }] }, // Customize route line style
+            addWaypoints: false, // Disable dragging of waypoints
+            show: false, // Prevent the directions UI from appearing
+            router: new L.Routing.OSRMv1({ alternatives: false }) // Ensure single route
+        }).addTo(map);
+
+        const directionsBox = document.querySelector('.leaflet-routing-container');
+        if (directionsBox) {
+            directionsBox.style.display = 'none'; // Hide the directions box
+        }
+    }
+
+    function openGoogleMaps(lat, lng) {
+        const userLatLng = userMarker ? userMarker.getLatLng() : null;
+        const userLocationParam = userLatLng
+            ? `&origin=${userLatLng.lat},${userLatLng.lng}`
+            : '';
+        const googleMapsUrl = `https://www.google.com/maps/dir/?api=1&destination=${lat},${lng}${userLocationParam}`;
+        window.open(googleMapsUrl, '_blank');
+    }
+
+    // Find nearest marker
+    document.getElementById('findNearest').addEventListener('click', function () {
+        if (!userMarker) {
+            alert("User location not available. Please enable location services.");
+            return;
+        }
+
+        let userLatLng = userMarker.getLatLng();
+        let nearestMarker = null;
+        let shortestDistance = Infinity;
+
+        markersCluster.eachLayer((marker) => {
+            let distance = userLatLng.distanceTo(marker.getLatLng());
+            if (distance < shortestDistance) {
+                shortestDistance = distance;
+                nearestMarker = marker;
             }
         });
+
+        if (nearestMarker) {
+            map.setView(nearestMarker.getLatLng(), 15); // Zoom to the nearest marker
+            nearestMarker.openPopup(); // Open popup on the nearest marker
+            alert(`Nearest location: ${nearestMarker.getPopup().getContent().split('<br>')[0]} \nDistance: ${(shortestDistance / 1000).toFixed(2)} km`);
+        } else {
+            alert("No locations found.");
+        }
     });
 
-    // On page load, update location and display gyms
-    document.addEventListener('DOMContentLoaded', function() {
+    // Event listener for dropdown menu
+    document.getElementById('locationType').addEventListener('change', function () {
+        const selectedType = this.value;
+        fetchOsmLocations(selectedType);
+    });
+
+    // Initialize map on page load
+    document.addEventListener('DOMContentLoaded', function () {
         updateLocation();
+        fetchOsmLocations('all');
     });
 </script>
 {% endblock %}

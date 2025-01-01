@@ -15,6 +15,9 @@ Including another URLconf
 """
 from django.urls import path
 from . import views
+from .views import GymLocationList
+from django.conf import settings
+from django.conf.urls.static import static
 
 urlpatterns = [
     path('map/', views.map_view, name='gym_map'),
@@ -22,4 +25,10 @@ urlpatterns = [
     path('login/', views.login_view, name='gym_login'),
     path('logout/', views.logout_view, name='gym_logout'),
     path('gym_data/', views.gym_data, name='gym_data'),  # Add this line for the gym_data endpoint
+    path('register/', views.register_view, name='gym_register'),
+    path('api/gyms/', GymLocationList.as_view(), name='gym_location_list'),
+    path('api/osm-locations/', views.osm_locations_view, name='osm_locations'),
+
 ]
+
+urlpatterns += static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)

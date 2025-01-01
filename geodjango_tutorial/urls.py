@@ -15,9 +15,11 @@ Including another URLconf
 """
 from django.contrib import admin
 from django.urls import include, path
+from gym.views import register_view
 
 urlpatterns = [
     path('admin/', admin.site.urls),
+    path('', register_view, name='landing_page'),
     path('', include('world.urls')),  # Include your app's URLs
     path('gym/', include('gym.urls')),
 ]

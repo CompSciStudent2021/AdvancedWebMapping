@@ -49,6 +49,7 @@ INSTALLED_APPS = [
     "django.contrib.gis",
     "world.apps.WorldConfig",
     "gym",
+    "rest_framework",
 ]
 
 MIDDLEWARE = [

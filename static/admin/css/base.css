@@ -1177,3 +1177,33 @@ a.deletelink:focus, a.deletelink:hover {
     color: var(--body-fg);
     background-color: var(--body-bg);
 }
+
+body.dark-mode {
+    background-color: #121212;
+    color: #ffffff;
+}
+
+.dark-mode #map {
+    filter: invert(1) hue-rotate(180deg);
+}
+
+.dark-mode button,
+.dark-mode select {
+    background-color: #333333;
+    color: #ffffff;
+    border: 1px solid #ffffff;
+}
+
+.dark-mode .leaflet-control {
+    background-color: #333333 !important;
+    color: #ffffff !important;
+}
+
+.dark-mode .leaflet-popup-content-wrapper {
+    background-color: #333333;
+    color: #ffffff;
+}
+
+.dark-mode .leaflet-popup-tip {
+    background-color: #333333;
+}
